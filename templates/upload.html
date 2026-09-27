@@ -3,14 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/upload.css">
     <title>OpenGroove</title>
 </head>
 <body>
-    <form method="post" action="/media" enctype="multipart/form-data">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <input type="file" name="file" multiple accept="audio/*">
-        <input type="submit" value="Submit">
-    </form>
+    <div id="file-section" class="section">
+        <h2>Files</h2>
+        <input type="file" name="file" id="file-selector" multiple accept="audio/*">
+        <label id="file-selector-area" for="file-selector">Upload files in this area</label>
+    </div>
+    <div id="album-list" class="section">
+        <h2>Albums</h2>
+        <table id="album-table">
+            <thead>
+                <tr>
+                    <th>Name<span class="required">*</span></th>
+                    <th>Artist(s)<span class="required">*</span></th>
+                    <th>Release date</th>
+                    <th>Cover</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+        <button id="album-add" class="add">Add album</button>
+    </div>
+    <div id="song-list" class="section">
+        <h2>Songs</h2>
+        <table id="song-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Artist(s)</th>
+                    <th>File</th>
+                    <th>Album</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+        <button id="song-add" class="add">Add song</button>
+    </div>
+    <button id="upload-data" class="add">Upload data</button>
+    <div id="album-modal" class="modal" style="display: none;">
+        <div class="gray-backdrop"></div>
+        <div class="modal-container">
+            <button class="modal-close">&times;</button>
+            <h1>Add album</h1>
+            <label for="album-name">Name<span class="required">*</span>:</label>
+            <input id="album-name">
+            <br>
+            <label>Artists<span class="required">*</span>: <span id="album-artist-list"></span></label>
+            <div class="modal-inline">
+                <label for="album-artist">Enter an artist's name:</label>
+                <input id="album-artist">
+                <button id="album-artist-add" class="modal-button"><b>+</b></button>
+            </div>
+            <br>
+            <label for="album-release">Release date:</label>
+            <input id="album-release" type="date">
+            <br>
+            <label for="album-cover-url">Cover URL:</label>
+            <input id="album-cover-url" type="url">
+            <br>
+            <button id="album-push" class="modal-button add">Add album</button>
+        </div> 
+    </div>
+    <div id="song-modal" class="modal" style="display: none;">
+        <div class="gray-backdrop"></div>
+        <div class="modal-container">
+            <button class="modal-close">&times;</button>
+            <h1>Add song</h1>
+            <label for="song-name">Name<span class="required">*</span>:</label>
+            <input id="song-name">
+            <br>
+            <label>Artists<span class="required">*</span>: <span id="song-artist-list"></span></label>
+            <div class="modal-inline">
+                <label for="song-artist">Enter an artist's name:</label>
+                <input id="song-artist">
+                <button id="song-artist-add" class="modal-button"><b>+</b></button>
+            </div>
+            <br>
+            <label for="song-file">Song file<span class="required">*</span> (<span id="songs-length">0</span> to choose from):</label>
+            <select id="song-file"></select>
+            <br>
+            <label for="song-album">Album:</label>
+            <select id="song-album"></select>
+            <br>
+            <button id="song-push" class="modal-button add">Add song</button>
+        </div> 
+    </div>
     <script src="/static/main.js"></script>
 </body>
 </html>

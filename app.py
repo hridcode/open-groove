@@ -26,7 +26,7 @@ app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 app.config["JWT_COOKIE_SECURE"] = False 
 app.config['JWT_CSRF_CHECK_FORM'] = True
 app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET"]
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours = 1)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days = 1)
 
 app.config["MAX_CONTENT_LENGTH"] = 64_000_000
 
