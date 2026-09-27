@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGroove</title>
+</head>
+<body>
+    <form method="post" action="/media" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="file" name="file" multiple accept="audio/*">
+        <input type="submit" value="Submit">
+    </form>
+    <script src="/static/main.js"></script>
+</body>
+</html>

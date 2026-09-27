@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGroove</title>
+</head>
+<body>
+    <form method="post" action="/auth">
+        <input type="radio" id="sign-up" name="mode" value="0">
+        <label for="sign-up">Sign up</label>
+        <input type="radio" id="sign-in" name="mode" value="1">
+        <label for="sign-in">Sign in</label>
+        <br>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="user">
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="pwd">
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
