@@ -56,11 +56,12 @@
             <label for="album-name">Name<span class="required">*</span>:</label>
             <input id="album-name">
             <br>
-            <label>Artists<span class="required">*</span>: <span id="album-artist-list"></span></label>
+            <label>Artists<span class="required">*</span>: <span id="album-artist-list">None</span></label>
             <div class="modal-inline">
                 <label for="album-artist">Enter an artist's name:</label>
                 <input id="album-artist">
                 <button id="album-artist-add" class="modal-button"><b>+</b></button>
+                <button id="album-artist-clear" class="modal-button clear"><b>Clear</b></button>
             </div>
             <br>
             <label for="album-release">Release date:</label>
@@ -80,11 +81,12 @@
             <label for="song-name">Name<span class="required">*</span>:</label>
             <input id="song-name">
             <br>
-            <label>Artists<span class="required">*</span>: <span id="song-artist-list"></span></label>
+            <label>Artists<span class="required">*</span>: <span id="song-artist-list">None</span></label>
             <div class="modal-inline">
                 <label for="song-artist">Enter an artist's name:</label>
                 <input id="song-artist">
                 <button id="song-artist-add" class="modal-button"><b>+</b></button>
+                <button id="song-artist-clear" class="modal-button clear"><b>Clear</b></button>
             </div>
             <br>
             <label for="song-file">Song file<span class="required">*</span> (<span id="songs-length">0</span> to choose from):</label>

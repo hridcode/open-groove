@@ -11,6 +11,7 @@ const albumName = $("#album-name");
 const albumArtistList = $("#album-artist-list");
 const albumArtist = $("#album-artist");
 const albumArtistAdd = $("#album-artist-add");
+const albumArtistClear = $("#album-artist-clear");
 const albumRelease = $("#album-release");
 const albumCoverURL = $("#album-cover-url");
 const albumPush = $("#album-push");
@@ -26,6 +27,7 @@ const songAmount = $("#songs-length");
 const songArtistList = $("#song-artist-list");
 const songArtist = $("#song-artist");
 const songArtistAdd = $("#song-artist-add");
+const songArtistClear = $("#song-artist-clear");
 const songFile = $("#song-file");
 const songAlbum = $("#song-album");
 const songPush = $("#song-push");
@@ -33,6 +35,17 @@ let songArtists = [];
 let songs = [];
 
 const uploadData = $("#upload-data");
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+
+    if (parts.length === 2) {
+        return parts.pop().split(";").shift();
+    }
+
+    return null;
+}
 
 albumAdd.addEventListener("click", () => {
     albumModal.style.display = "";
@@ -63,7 +76,7 @@ function updateAlbums() {
 
         nameTd.textContent = album.name;
         artistsTd.textContent = album.artists.join(", ");
-        releaseTd.textContent = album.releaseDate.toLocaleDateString();
+        releaseTd.textContent = album.release;
         
         coverImg.src = album.cover;
         coverImg.classList.add("image-cover");
@@ -87,7 +100,7 @@ albumPush.addEventListener("click", () => {
     albums.push({
         name: albumName.value.trim(),
         artists: albumArtists,
-        releaseDate: new Date(albumRelease.valueAsNumber),
+        release: (new Date(albumRelease.valueAsNumber)).toLocaleDateString(),
         cover: albumCoverURL.value
     });
 
@@ -106,7 +119,41 @@ albumArtistAdd.addEventListener("click", () => {
     albumArtist.value = "";
 })
 
-function updateSongs() {}
+albumArtistClear.addEventListener("click", () => {
+    albumArtists = [];
+    albumArtistList.textContent = "None";
+    albumArtist.value = "";
+})
+
+function updateSongs() {
+    songBody.innerHTML = "";
+
+    for (let song of songs) {
+        const newTr = document.createElement("tr");
+        const nameTd = document.createElement("td");
+        const artistsTd = document.createElement("td");
+        const fileTd = document.createElement("td");
+        const albumTd = document.createElement("td");
+
+        const coverImg = document.createElement("img");
+
+        nameTd.textContent = song.name;
+        artistsTd.textContent = song.artists.join(", ");
+
+        const file = fileSelector.files[song.file];
+        fileTd.textContent = `${file.name} (${(file.size / 1000000).toFixed(2)} MB)`;
+        
+        const album = albums[song.album];
+        albumTd.textContent = `${album.artists.join(", ")} - ${album.name}`;
+
+        newTr.appendChild(nameTd);
+        newTr.appendChild(artistsTd);
+        newTr.appendChild(fileTd);
+        newTr.appendChild(albumTd);
+
+        songBody.appendChild(newTr);
+    }
+}
 
 function updateSongModal() {
     songAmount.textContent = fileSelector.files.length;
@@ -141,7 +188,7 @@ songPush.addEventListener('click', () => {
     songs.push({
         name: songName.value.trim(),
         artists: songArtists,
-        file: fileSelector.files[+songFile.value],
+        file: +songFile.value,
         album: +songAlbum.value
     });
 
@@ -152,6 +199,36 @@ songArtistAdd.addEventListener("click", () => {
     songArtists.push(songArtist.value.trim());
     songArtistList.textContent = songArtists.join(", ");
     songArtist.value = "";
+})
+
+songArtistClear.addEventListener("click", () => {
+    songArtists = [];
+    songArtistList.textContent = "None";
+    songArtist.value = "";
+})
+
+uploadData.addEventListener("click", async () => {
+    const formData = new FormData();
+
+    formData.append("csrf_token", getCookie("csrf_access_token"));
+
+    for (const file of fileSelector.files) {
+        formData.append("file", file);
+    }
+
+    formData.append("metadata", JSON.stringify({
+        albums: albums,
+        songs: songs
+    }));
+
+    const request = await fetch("/media", {
+        method: "POST",
+        body: formData
+    });
+
+    const response = await request.json();
+
+    alert(response.message);
 })
 
 $a(".modal-close").forEach(element => {

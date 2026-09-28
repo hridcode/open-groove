@@ -6,11 +6,13 @@ from flask_jwt_extended import JWTManager, get_jwt, get_jwt_identity, jwt_requir
 from datetime import datetime, timedelta, timezone
 
 from functools import wraps
-import os
+import os, json
 from dotenv import load_dotenv
 
 import uuid, boto3
 from botocore.client import Config
+
+import mutagen
 
 load_dotenv()
 
@@ -27,8 +29,6 @@ app.config["JWT_COOKIE_SECURE"] = False
 app.config['JWT_CSRF_CHECK_FORM'] = True
 app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days = 1)
-
-app.config["MAX_CONTENT_LENGTH"] = 64_000_000
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -47,17 +47,30 @@ class User(db.Model):
     username = db.Column(db.String, nullable=False, unique=True)
     password = db.Column(db.String, nullable=False)
 
+    songs = db.relationship('Song', backref='owner', lazy=True)
+    albums = db.relationship('Album', backref='owner', lazy=True) 
+
+class Album(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    artists = db.Column(db.JSON, nullable=False)
+    release = db.Column(db.Date)
+    cover_url = db.Column(db.String)
+
+    songs = db.relationship('Song', backref='album', lazy=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+
 class Song(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
+    artists = db.Column(db.JSON, nullable=False)
     
     duration = db.Column(db.Float, nullable=False)
 
     song_key = db.Column(db.String, nullable=False, unique=True)
-    cover_key = db.Column(db.String)
 
     owner_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
-    owner = db.relationship('User', foreign_keys='Song.owner_id')    
+    album_id = db.Column(db.Integer, db.ForeignKey(Album.id))
 
 def code(code, message):
     return jsonify({
@@ -167,6 +180,7 @@ def auth():
 
 @app.route('/media', methods=["POST"])
 @jwt_required()
+@safe_route
 def upload_media():
     if 'file' not in request.files:
         return code(400, "No files uploaded")
@@ -175,20 +189,63 @@ def upload_media():
 
     uploaded_files = request.files.getlist("file")
 
-    for index, file in enumerate(uploaded_files):
-        ext = file.filename.split(".")[-1]
-        filename = f"{uuid.uuid4()}.{ext}"
+    file_metadata = request.form.get("metadata")
+    file_metadata = json.loads(file_metadata)
 
-        s3.upload_fileobj(file, "open-groove", f"uploads/songs/{filename}")
+    album_dict = {}
 
-        new_song = Song(
-            name = f"Song {index + 1}",
-            duration = 529,
-            song_key = filename,
+    for index, album in enumerate(file_metadata.get("albums")): 
+        name = album.get("name")
+        artists = album.get("artists")
+        release = datetime.strptime(
+            album["release"],
+            "%-m/%-d/%Y"
+        ).date()
+        cover_url = album.get("cover")
+
+        new_album = Album(
+            name = name,
+            artists = artists,
+            release = release,
+            cover_url = cover_url,
             owner_id = identity
         )
 
+        db.session.add(new_album)
+        db.session.flush()
+
+        album_dict[index] = new_album.id
+
+    for index, song in enumerate(file_metadata.get("songs")):
+        file = uploaded_files[song["file"]]
+        ext = file.filename.split(".")[-1]
+        filename = f"{uuid.uuid4()}.{ext}"
+
+        audio = mutagen.File(file.stream)
+
+        if audio is None:
+            return code(400, "Unsupported file")
+
+        s3.upload_fileobj(file, "open-groove", f"uploads/songs/{filename}")
+
+        name = song.get("name")
+        artists = song.get("artists")
+        print(song.get("album"), album_dict)
+        album_id = album_dict[song.get("album")]
+        duration = int(audio.info.length)
+
+        new_song = Song(
+            name = name,
+            artists = artists,
+            song_key = filename,
+            owner_id = identity,
+            duration = duration,
+            album_id = album_id
+        )
+
         db.session.add(new_song)
+
+        del audio
     
     db.session.commit()
     return code(200, "Content successfully uploaded")

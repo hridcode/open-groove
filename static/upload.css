@@ -43,6 +43,14 @@ body:first-child {
     background-color: #666;
 }
 
+.clear {
+    background-color: #ff4e4e;
+}
+
+.clear:hover {
+    background-color: #ff6262;
+}
+
 #file-selector {
     display: none;
 }
